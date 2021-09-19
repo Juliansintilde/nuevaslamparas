@@ -7,6 +7,7 @@ const opciones = {}; // Opciones en https://parceljs.org/api.html
 const compilador = new Compilador(entrada, opciones);
 const { v4: uuidv4 } = require('uuid');
 const puerto = 7070;
+const Raspi = require('raspi-io').RaspiIO;
 
 let proximoEnIniciarLlamada;
 
@@ -16,7 +17,9 @@ let proximoEnIniciarLlamada;
  * Archivo -> Ejemplos -> Firmata -> StandardFirmataPlus
  */
 const { Board, Led } = require('johnny-five');
-const board = new Board();
+const board = new Board({
+  io: new Raspi(),
+});
 const lamparas = {
   lampara1: null,
   lampara2: null,
@@ -30,10 +33,10 @@ let arduinoListo = false;
 
 board.on('ready', () => {
   arduinoListo = true;
-  lamparas.lampara1 = new Led(9);
-  lamparas.lampara2 = new Led(9);
-  lamparas.lampara3 = new Led(9);
-  lamparas.lampara4 = new Led(9);
+  lamparas.lampara1 = new Led('P1-13');
+  lamparas.lampara2 = new Led('P1-15');
+  lamparas.lampara3 = new Led('P1-13');
+  lamparas.lampara4 = new Led('P1-15');
 });
 
 app.use(compilador.middleware());
