@@ -13,7 +13,7 @@
   "dependencies": {
     "eventemitter3": "^4.0.7",
     "express": "^4.17.1",
-    "johnny-five": "^2.1.0",
+    "onoff": "^6.0.3",
     "simple-peer": "^9.11.0",
     "uuid": "^8.3.2",
     "ws": "^8.2.2"

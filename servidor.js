@@ -7,7 +7,7 @@ const opciones = {}; // Opciones en https://parceljs.org/api.html
 const compilador = new Compilador(entrada, opciones);
 const { v4: uuidv4 } = require('uuid');
 const puerto = 7070;
-// const Raspi = require('raspi-io').RaspiIO;
+const Gpio = require('onoff').Gpio;
 
 let proximoEnIniciarLlamada;
 
@@ -16,10 +16,6 @@ let proximoEnIniciarLlamada;
  * Desde el Arduino IDE, debemos cargar en la placa el programa de:
  * Archivo -> Ejemplos -> Firmata -> StandardFirmataPlus
  */
-const { Board, Led } = require('johnny-five');
-const board = new Board({
-  // io: new Raspi(),
-});
 const lamparas = {
   lampara1: null,
   lampara2: null,
@@ -31,17 +27,16 @@ const lamparas = {
 
 let arduinoListo = false;
 
-board.on('ready', () => {
-  arduinoListo = true;
-  lamparas.lampara1 = new Led(9);
-  lamparas.lampara2 = new Led(10);
-  lamparas.lampara3 = new Led(9);
-  lamparas.lampara4 = new Led(10);
-  // lamparas.lampara1 = new Led('P1-13');
-  // lamparas.lampara2 = new Led('P1-15');
-  // lamparas.lampara3 = new Led('P1-13');
-  // lamparas.lampara4 = new Led('P1-15');
-});
+arduinoListo = true;
+lamparas.lampara1 = new Gpio(17, 'out');
+
+// lamparas.lampara2 = new Led(10);
+// lamparas.lampara3 = new Led(9);
+// lamparas.lampara4 = new Led(10);
+// lamparas.lampara1 = new Led('P1-13');
+// lamparas.lampara2 = new Led('P1-15');
+// lamparas.lampara3 = new Led('P1-13');
+// lamparas.lampara4 = new Led('P1-15');
 
 app.use(compilador.middleware());
 const ws = new WebSocket.Server({ server });
@@ -88,12 +83,12 @@ ws.on('connection', (usuario) => {
     switch (datos.accion) {
       case 'prender':
         if (!arduinoListo || !lamparas.hasOwnProperty(`lampara${datos.lampara}`)) return;
-        lamparas[`lampara${datos.lampara}`].off();
+        lamparas[`lampara${datos.lampara}`].writeSync(0);
         break;
 
       case 'apagar':
         if (!arduinoListo || !lamparas.hasOwnProperty(`lampara${datos.lampara}`)) return;
-        lamparas[`lampara${datos.lampara}`].on();
+        lamparas[`lampara${datos.lampara}`].writeSync(1);
         break;
 
       case 'ofrecerSeñal':
