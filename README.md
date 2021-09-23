@@ -2,6 +2,11 @@
 
 Proyecto que controla un arduino desde la web.
 
+## ¿Qué se necesita?
+
+Raspeberry Pi 3 B  
+(Link a la tablita de los pines) https://pinout.xyz/pinout/  
+
 ## Instalación
 
 ```bash
