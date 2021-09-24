@@ -1,6 +1,8 @@
 const Compilador = require('parcel-bundler');
 const WebSocket = require('ws');
 const app = require('express')();
+const ngrok = require('ngrok');
+const videoStream = require('./stream');
 const server = require('http').createServer(app);
 const entrada = 'src/index.html';
 const opciones = {}; // Opciones en https://parceljs.org/api.html
@@ -8,35 +10,59 @@ const compilador = new Compilador(entrada, opciones);
 const { v4: uuidv4 } = require('uuid');
 const puerto = 7070;
 const Gpio = require('onoff').Gpio;
+const ON = 1;
+const OFF = 0;
 
-let proximoEnIniciarLlamada;
+const token = '';
 
-/**
- * Controlamos el arduino con JS usando la librería "johnny-five".
- * Desde el Arduino IDE, debemos cargar en la placa el programa de:
- * Archivo -> Ejemplos -> Firmata -> StandardFirmataPlus
- */
+async function cargarNgrok() {
+  try {
+    const url = await ngrok.connect({
+      authtoken: token,
+      subdomain: 'ventana',
+      addr: 7070,
+    });
+    console.log('Ventana abierta en: ' + url);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+cargarNgrok();
+
+videoStream.acceptConnections(
+  app,
+  {
+    width: 1280,
+    height: 720,
+    fps: 16,
+    encoding: 'JPEG',
+    quality: 7, //lower is faster
+  },
+  '/stream.mjpg',
+  false
+);
+
+(async function () {
+  const url = await ngrok.connect();
+})();
+
 const lamparas = {
-  lampara1: null,
-  lampara2: null,
-  lampara3: null,
-  lampara4: null,
-  lampara5: null,
-  lampara6: null,
+  lampara1: new Gpio(17, 'out'),
+  // lampara2: null,
+  // lampara3: null,
+  // lampara4: null,
+  // lampara5: null,
+  // lampara6: null
 };
 
-let arduinoListo = false;
-
-arduinoListo = true;
-lamparas.lampara1 = new Gpio(17, 'out');
-
-// lamparas.lampara2 = new Led(10);
-// lamparas.lampara3 = new Led(9);
-// lamparas.lampara4 = new Led(10);
-// lamparas.lampara1 = new Led('P1-13');
-// lamparas.lampara2 = new Led('P1-15');
-// lamparas.lampara3 = new Led('P1-13');
-// lamparas.lampara4 = new Led('P1-15');
+// process.on('SIGINT', (_) => {
+//   for (let lamparaI in lamparas) {
+//     const lampara = lamparas[lamparaI];
+//     lampara.writeSync(OFF);
+//     lampara.unexport();
+//   }
+// });
 
 app.use(compilador.middleware());
 const ws = new WebSocket.Server({ server });
@@ -72,7 +98,12 @@ ws.on('connection', (usuario) => {
       })
     );
 
-    usuario.send(JSON.stringify({ accion: 'eresReceptor', recibirLlamadaDe: proximoEnIniciarLlamada.id }));
+    usuario.send(
+      JSON.stringify({
+        accion: 'eresReceptor',
+        recibirLlamadaDe: proximoEnIniciarLlamada.id,
+      })
+    );
     // proximoEnIniciarLlamada = usuario;
   }
 
@@ -82,13 +113,13 @@ ws.on('connection', (usuario) => {
 
     switch (datos.accion) {
       case 'prender':
-        if (!arduinoListo || !lamparas.hasOwnProperty(`lampara${datos.lampara}`)) return;
-        lamparas[`lampara${datos.lampara}`].writeSync(0);
+        if (!Gpio.accessible || !lamparas.hasOwnProperty(`lampara${datos.lampara}`)) return;
+        lamparas[`lampara${datos.lampara}`].writeSync(ON);
         break;
 
       case 'apagar':
-        if (!arduinoListo || !lamparas.hasOwnProperty(`lampara${datos.lampara}`)) return;
-        lamparas[`lampara${datos.lampara}`].writeSync(1);
+        if (!Gpio.accessible || !lamparas.hasOwnProperty(`lampara${datos.lampara}`)) return;
+        lamparas[`lampara${datos.lampara}`].writeSync(OFF);
         break;
 
       case 'ofrecerSeñal':
