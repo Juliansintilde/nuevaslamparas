@@ -4,8 +4,19 @@ Proyecto que controla un arduino desde la web.
 
 ## ¿Qué se necesita?
 
-Raspeberry Pi 3 B  
-(Link a la tablita de los pines) https://pinout.xyz/pinout/  
+- Raspeberry PI
+- Memoria SD ([Ver como configurarla](./docs/preparar-sd.md))
+- (Opcional) [Entrar a la Raspberry por SSH](./docs/entrar-a-raspberry.md) o abrir el terminal directo en la Raspberry si se instalo sistema operativo con interfaz.
+
+- Instalar Git, Nodejs y Yarn [(instrucciones)](./docs/instalar-dependencias.md)
+
+- (Link a la tablita de los pines) https://pinout.xyz/pinout/
+
+## Clonar
+
+```bash
+git clone https://github.com/Juliansintilde/nuevaslamparas.git
+```
 
 ## Instalación
 
